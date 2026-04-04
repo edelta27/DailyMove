@@ -23,21 +23,24 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     var lastCompletedDay by mutableStateOf(0)
         private set
 
+    var currentDay by mutableStateOf(1)
+        private set
+
+
     init {
+        currentDay = calculateCurrentDay()
         completedDays = storage.getCompletedDaysCount()
-        val day = getCurrentDay()
-        isLocked = storage.isDayCompleted(day)
+        isLocked = storage.isDayCompleted(currentDay)
     }
     fun markDayCompleted() {
-        val day = getCurrentDay()
-        storage.saveCompletedDay(day)
+        storage.saveCompletedDay(currentDay)
 
-        lastCompletedDay = day
+        lastCompletedDay = currentDay
         isLocked = true
         completedDays = storage.getCompletedDaysCount()
     }
 
-    fun getCurrentDay(): Int {
+    fun calculateCurrentDay(): Int {
         for (i in 1..30) {
             if (!storage.isDayCompleted(i)) {
                 return i
@@ -47,8 +50,7 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun getCurrentExercise(): Exercise {
-        val day = getCurrentDay()
-        return ExerciseRepository.exercises[(day - 1) % ExerciseRepository.exercises.size]
+        return ExerciseRepository.exercises[(currentDay - 1) % ExerciseRepository.exercises.size]
     }
 
     fun isDayCompleted(day: Int): Boolean {
@@ -59,16 +61,17 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
         storage.clearAll()
         completedDays = 0
         isLocked = false
+        currentDay = 1
     }
 
     fun shouldShowStartScreen(): Boolean {
-        val today = getCurrentDay()
+        val today = calculateCurrentDay()
         val last = storage.getLastOpenDay()
         return today != last
     }
 
     fun markAppOpenedToday() {
-        val day = getCurrentDay()
+        val day = calculateCurrentDay()
         storage.saveLastOpenDay(day)
     }
 

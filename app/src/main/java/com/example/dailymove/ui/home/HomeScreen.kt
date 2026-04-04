@@ -16,27 +16,62 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
 
-    var reps by remember { mutableStateOf("") }
+    val today = LocalDate.now()
+    val formattedDate = today.format(
+        DateTimeFormatter.ofPattern("dd.MM.yyyy, EEEE", Locale("pl"))
+    )
     val viewModel: ExerciseViewModel = viewModel()
-    val exercise = viewModel.getCurrentExercise()
-    val day = viewModel.getCurrentDay()
+    val day = viewModel.calculateCurrentDay()
     val completedDays = viewModel.completedDays
     val scrollState = rememberScrollState()
-    val isLocked = viewModel.isLocked
-    val lastDay = viewModel.lastCompletedDay
+    val tips = listOf(
+        "💧 Wypij dziś 2 szklanki wody więcej",
+        "🌿 Wyjdź na 10 minut na świeże powietrze",
+        "🍋 Spróbuj wody z cytryną",
+        "🚶‍♀️ Krótki spacer też się liczy",
+        "☀️ Złap trochę słońca dziś"
+    )
+
+    val tip = tips.random()
+
+    val imageRes = listOf(
+        R.drawable.bg1,
+        R.drawable.bg2,
+        R.drawable.bg3,
+        R.drawable.bg4,
+        R.drawable.bg5
+    ).random()
+
+    val funDays = listOf(
+        "🍰 Dzień Muffinki",
+        "☕ Dzień Kawy",
+        "🌿 Dzień Relaksu"
+    )
+
+    val todayFun = funDays.random()
+
     var showStartScreen by remember {
         mutableStateOf(viewModel.shouldShowStartScreen())
     }
+    var showExercise by remember { mutableStateOf(false) }
 
+    if (showExercise) {
+        ExerciseScreen(onBack = { showExercise = false })
+        return
+    }
 
     if (showStartScreen) {
         StartScreen(onStartClick = {
@@ -44,6 +79,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             showStartScreen = false })
         return
     }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -60,93 +96,49 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = formattedDate,
+            fontSize = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+
+            text = todayFun,
+            modifier = Modifier.padding(10.dp)
+
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(text = "Progress: $completedDays / 30")
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(6.dp)
-        ) {
-
-            Column(modifier = Modifier.padding(16.dp)) {
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        text = "Day $day",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = exercise.imageRes),
-                        contentDescription = exercise.name,
-                        modifier = Modifier.size(200.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = exercise.name,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(text = exercise.description)
-
-                Text(text = "Mięśnie:")
-                exercise.muscleGroups.forEach {
-                    Text(text = "• $it")
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(text = "Ciekawostka:")
-                Text(text = exercise.funFact)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(text = "Minimum: ${exercise.minReps} reps")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = reps,
-            onValueChange = { reps = it },
-            label = { Text("Your reps") }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { viewModel.markDayCompleted() },
-            enabled = !isLocked && reps.isNotBlank()
-        ) {
-            Text(if (isLocked) "Zrobione ✔" else "ZROBIONE")
-        }
-        if (isLocked) {
-            Spacer(modifier = Modifier.height(16.dp))
+        if (viewModel.isLocked) {
             Text(
-                text = "To był Twój dzień $lastDay 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
+                text = "✔ Dzisiejsze ćwiczenie wykonane",
+                color = Color(0xFF4CAF50),
+                fontWeight = FontWeight.Bold
             )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Button(onClick = { showExercise = true }) {
+            Text("ZACZNIJ")
+        }
+
+        Image(
+            painter = painterResource(imageRes),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp),
+            contentScale = ContentScale.Crop
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
 
         CalendarView(viewModel)
@@ -158,6 +150,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 Text("Zacznij od nowa 🔁")
             }
         }
+
+        Card {
+            Text(
+                text = tip,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 
 }
@@ -166,7 +165,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 fun CalendarView(viewModel: ExerciseViewModel) {
 
     val refreshTrigger = viewModel.completedDays
-    val currentDay = viewModel.getCurrentDay()
+    val currentDay = viewModel.calculateCurrentDay()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -353,6 +352,117 @@ fun StartScreen(onStartClick: () -> Unit) {
             ) {
                 Text("ZACZYNAMY", fontSize = 18.sp)
             }
+        }
+    }
+}
+
+@Composable
+fun ExerciseScreen(onBack: () -> Unit) {
+    val viewModel: ExerciseViewModel = viewModel()
+    val exercise = viewModel.getCurrentExercise()
+    val isLocked = viewModel.isLocked
+    val lastDay = viewModel.lastCompletedDay
+    var reps by remember { mutableStateOf("") }
+    val day = viewModel.calculateCurrentDay()
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(scrollState)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = onBack) {
+                Text("Zamknij ✕")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(6.dp)
+        ) {
+
+            Column(modifier = Modifier.padding(16.dp)) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "Day $day",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = exercise.imageRes),
+                        contentDescription = exercise.name,
+                        modifier = Modifier.size(200.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = exercise.name,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(text = exercise.description)
+
+                Text(text = "Mięśnie:")
+                exercise.muscleGroups.forEach {
+                    Text(text = "• $it")
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(text = "Ciekawostka:")
+                Text(text = exercise.funFact)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(text = "Minimum: ${exercise.minReps} reps")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = reps,
+            onValueChange = { reps = it },
+            label = { Text("Your reps") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { viewModel.markDayCompleted() },
+            enabled = !isLocked && reps.isNotBlank()
+        ) {
+            Text(if (isLocked) "Zrobione ✔" else "ZROBIONE")
+        }
+        if (isLocked) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "To był Twój dzień $lastDay 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
+            )
         }
     }
 }
