@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import com.example.dailymove.data.FunDayRepository
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -55,13 +57,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         R.drawable.bg5
     ).random()
 
-    val funDays = listOf(
-        "🍰 Dzień Muffinki",
-        "☕ Dzień Kawy",
-        "🌿 Dzień Relaksu"
-    )
-
-    val todayFun = funDays.random()
+    val todayFun = FunDayRepository.getTodayFun()
 
     var showStartScreen by remember {
         mutableStateOf(viewModel.shouldShowStartScreen())
@@ -108,7 +104,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         Text(
 
             text = todayFun,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
 
         )
 
@@ -352,6 +349,8 @@ fun StartScreen(onStartClick: () -> Unit) {
             ) {
                 Text("ZACZYNAMY", fontSize = 18.sp)
             }
+
+            Spacer(modifier = Modifier.height(50.dp))
         }
     }
 }
@@ -464,5 +463,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
                 text = "To był Twój dzień $lastDay 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
