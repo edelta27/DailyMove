@@ -359,7 +359,7 @@ fun StartScreen(onStartClick: () -> Unit) {
 fun ExerciseScreen(onBack: () -> Unit) {
     val viewModel: ExerciseViewModel = viewModel()
     val exercise = viewModel.getCurrentExercise()
-    val isLocked = viewModel.isLocked
+    val isLocked = viewModel.isTodayCompleted()
     val lastDay = viewModel.lastCompletedDay
     var reps by remember { mutableStateOf("") }
     val day = viewModel.calculateCurrentDay()
@@ -370,6 +370,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(scrollState)
+            .navigationBarsPadding()
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

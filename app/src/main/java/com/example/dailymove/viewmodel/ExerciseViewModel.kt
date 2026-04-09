@@ -8,6 +8,9 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.dailymove.data.Exercise
 import com.example.dailymove.data.ExerciseRepository
 import com.example.dailymove.storage.ProgressStorage
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 
 class ExerciseViewModel(application: Application) : AndroidViewModel(application) {
@@ -23,19 +26,17 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     var lastCompletedDay by mutableStateOf(0)
         private set
 
-    var currentDay by mutableStateOf(1)
-        private set
-
 
     init {
-        currentDay = calculateCurrentDay()
         completedDays = storage.getCompletedDaysCount()
-        isLocked = storage.isDayCompleted(currentDay)
+        isLocked = storage.isDayCompleted(getCurrentDay())
     }
     fun markDayCompleted() {
-        storage.saveCompletedDay(currentDay)
+        val day = getCurrentDay()
 
-        lastCompletedDay = currentDay
+        storage.saveCompletedDay(day)
+
+        lastCompletedDay = day
         isLocked = true
         completedDays = storage.getCompletedDaysCount()
     }
@@ -50,7 +51,9 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun getCurrentExercise(): Exercise {
-        return ExerciseRepository.exercises[(currentDay - 1) % ExerciseRepository.exercises.size]
+        val day = getCurrentDay()
+
+        return ExerciseRepository.exercises[(day - 1) % ExerciseRepository.exercises.size]
     }
 
     fun isDayCompleted(day: Int): Boolean {
@@ -61,7 +64,6 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
         storage.clearAll()
         completedDays = 0
         isLocked = false
-        currentDay = 1
     }
 
     fun shouldShowStartScreen(): Boolean {
@@ -73,6 +75,29 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     fun markAppOpenedToday() {
         val day = calculateCurrentDay()
         storage.saveLastOpenDay(day)
+    }
+
+    fun getCurrentDay(): Int {
+        val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+        val today = LocalDate.now()
+
+        val startDateString = storage.getStartDate()
+
+        if (startDateString == null) {
+            storage.saveStartDate(today.format(formatter))
+            return 1
+        }
+
+        val startDate = LocalDate.parse(startDateString, formatter)
+
+        val daysBetween = ChronoUnit.DAYS.between(startDate, today).toInt()
+
+        return (daysBetween + 1).coerceAtMost(30)
+    }
+
+    fun isTodayCompleted(): Boolean {
+        val day = getCurrentDay()
+        return storage.isDayCompleted(day)
     }
 
 }
