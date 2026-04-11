@@ -114,7 +114,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Text(text = "Progress: $completedDays / 30")
+        Text(text = "Licznik dni zaliczonych: $completedDays / 30")
 
         if (viewModel.isTodayCompleted()) {
             Text(
@@ -351,7 +351,13 @@ fun StartScreen(onStartClick: () -> Unit) {
         }
     }
 }
-
+fun getRepsText(reps: Int): String {
+    return when {
+        reps == 1 -> "powtórzenie"
+        reps in 2..4 -> "powtórzenia"
+        else -> "powtórzeń"
+    }
+}
 @Composable
 fun ExerciseScreen(onBack: () -> Unit) {
     val viewModel: ExerciseViewModel = viewModel()
@@ -359,6 +365,11 @@ fun ExerciseScreen(onBack: () -> Unit) {
     val isLocked = viewModel.isTodayCompleted()
     var reps by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+    val currentDay = viewModel.getCurrentDay()
+    val isDone = viewModel.isTodayCompleted()
+    val displayDay = if (isDone) currentDay - 1 else currentDay
+    var isError by remember { mutableStateOf(false) }
+
 
     Column(
         modifier = Modifier
@@ -390,7 +401,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = "Day ${exercise.id}",
+                        text = "Dzień $displayDay",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -433,7 +444,14 @@ fun ExerciseScreen(onBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Minimum: ${exercise.minReps} reps")
+                if (exercise.durationSeconds != null)
+                {Text(text = "Czas: ${exercise.minReps} sekund")}
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (exercise.minReps != null) {
+                    Text(text = "Minimum: ${exercise.minReps} ${getRepsText(exercise.minReps)}")
+                }
             }
         }
 
@@ -441,15 +459,26 @@ fun ExerciseScreen(onBack: () -> Unit) {
 
         OutlinedTextField(
             value = reps,
-            onValueChange = { reps = it },
-            label = { Text("Your reps") }
+            onValueChange = {
+                reps = it
+                isError = it.any { char -> !char.isDigit() }
+            },
+            label = { Text("Tu wpisz ile powtórzeń wykonano") },
+            isError = isError
         )
+
+        if (isError) {
+            Text(
+                text = "Wpisz liczbę powtórzeń",
+                color = MaterialTheme.colorScheme.error
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = { viewModel.markDayCompleted() },
-            enabled = !isLocked && reps.isNotBlank()
+            enabled = !isDone && reps.isNotBlank() && !isError && reps.toIntOrNull() != null && reps.toInt() > 0
         ) {
             Text(if (isLocked) "Zrobione ✔" else "ZROBIONE")
         }

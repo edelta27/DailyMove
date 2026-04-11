@@ -264,6 +264,7 @@ object ExerciseRepository {
             imageFront = 0,
             imageBack = 0,
             imageRes = R.drawable.walk,
+            minReps = 1,
             durationSeconds = 1800
         ),
         Exercise(
@@ -275,6 +276,7 @@ object ExerciseRepository {
             imageFront = 0,
             imageBack = 0,
             imageRes = R.drawable.dance,
+            minReps = 1,
             durationSeconds = 180
         ),
         Exercise(
