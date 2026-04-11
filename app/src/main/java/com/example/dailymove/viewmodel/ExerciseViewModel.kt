@@ -20,16 +20,12 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     var completedDays by mutableStateOf(0)
         private set
 
-    var isLocked by mutableStateOf(false)
-        private set
-
     var lastCompletedDay by mutableStateOf(0)
         private set
 
 
     init {
         completedDays = storage.getCompletedDaysCount()
-        isLocked = storage.isDayCompleted(getCurrentDay())
     }
     fun markDayCompleted() {
         val day = getCurrentDay()
@@ -37,7 +33,6 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
         storage.saveCompletedDay(day)
 
         lastCompletedDay = day
-        isLocked = true
         completedDays = storage.getCompletedDaysCount()
     }
 
@@ -63,7 +58,6 @@ class ExerciseViewModel(application: Application) : AndroidViewModel(application
     fun resetProgress() {
         storage.clearAll()
         completedDays = 0
-        isLocked = false
     }
 
     fun shouldShowStartScreen(): Boolean {

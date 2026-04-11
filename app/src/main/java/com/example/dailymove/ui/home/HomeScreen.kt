@@ -1,5 +1,6 @@
 package com.example.dailymove.ui.home
 
+import android.util.Log
 import com.example.dailymove.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -86,6 +87,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             Text("Błąd dnia: $day")
             return
         }
+        Log.d("TEST", "Day: ${viewModel.getCurrentDay()}")
+        Log.d("TEST", "IsDone: ${viewModel.isTodayCompleted()}")
         Text(
             text = "DailyMove",
             fontSize = 24.sp,
@@ -113,7 +116,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
         Text(text = "Progress: $completedDays / 30")
 
-        if (viewModel.isLocked) {
+        if (viewModel.isTodayCompleted()) {
             Text(
                 text = "✔ Dzisiejsze ćwiczenie wykonane",
                 color = Color(0xFF4CAF50),
@@ -246,7 +249,6 @@ fun StartScreen(onStartClick: () -> Unit) {
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // 🌅 1. TŁO (ZDJĘCIE)
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = null,
@@ -254,7 +256,6 @@ fun StartScreen(onStartClick: () -> Unit) {
             contentScale = ContentScale.Crop
         )
 
-        // 🌑 2. PRZYCIEMNIENIE (gradient)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -269,7 +270,6 @@ fun StartScreen(onStartClick: () -> Unit) {
                 )
         )
 
-        // 💛 3. TREŚĆ
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -280,7 +280,6 @@ fun StartScreen(onStartClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🌿 GÓRA (tytuł)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
                 Box(
@@ -311,7 +310,6 @@ fun StartScreen(onStartClick: () -> Unit) {
                 }
             }
 
-            // 🌼 ŚRODEK (karta)
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = Color.Black.copy(alpha = 0.3f)
@@ -340,7 +338,6 @@ fun StartScreen(onStartClick: () -> Unit) {
                 }
             }
 
-            // 🔘 PRZYCISK
             Button(
                 onClick = onStartClick,
                 modifier = Modifier
@@ -360,9 +357,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
     val viewModel: ExerciseViewModel = viewModel()
     val exercise = viewModel.getCurrentExercise()
     val isLocked = viewModel.isTodayCompleted()
-    val lastDay = viewModel.lastCompletedDay
     var reps by remember { mutableStateOf("") }
-    val day = viewModel.calculateCurrentDay()
     val scrollState = rememberScrollState()
 
     Column(
@@ -395,7 +390,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = "Day $day",
+                        text = "Day ${exercise.id}",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -461,7 +456,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
         if (isLocked) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "To był Twój dzień $lastDay 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
+                text = "To był Twój dzień ${viewModel.getCurrentDay()} 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
             )
         }
 
