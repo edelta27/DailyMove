@@ -365,10 +365,11 @@ fun ExerciseScreen(onBack: () -> Unit) {
     val isLocked = viewModel.isTodayCompleted()
     var reps by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
-    val currentDay = viewModel.getCurrentDay()
     val isDone = viewModel.isTodayCompleted()
-    val displayDay = if (isDone) currentDay - 1 else currentDay
     var isError by remember { mutableStateOf(false) }
+    val minReps = exercise.minReps ?: 0
+    val day = viewModel.getCurrentDay()
+    val refresh = viewModel.completedDays
 
 
     Column(
@@ -401,7 +402,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.End
                 ) {
                     Text(
-                        text = "Dzień $displayDay",
+                        text = "Dzień $day",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -478,7 +479,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
 
         Button(
             onClick = { viewModel.markDayCompleted() },
-            enabled = !isDone && reps.isNotBlank() && !isError && reps.toIntOrNull() != null && reps.toInt() > 0
+            enabled = !isDone && reps.isNotBlank() && !isError && reps.toIntOrNull() != null && reps.toInt() >= minReps
         ) {
             Text(if (isLocked) "Zrobione ✔" else "ZROBIONE")
         }
