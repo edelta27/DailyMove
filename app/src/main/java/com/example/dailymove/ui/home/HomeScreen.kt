@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -87,7 +86,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             Text("Błąd dnia: $day")
             return
         }
-        Log.d("TEST", "Day: ${viewModel.getCurrentDay()}")
+        Log.d("TEST", "Day: ${viewModel.calculateCurrentDay()}")
         Log.d("TEST", "IsDone: ${viewModel.isTodayCompleted()}")
         Text(
             text = "DailyMove",
@@ -361,14 +360,14 @@ fun getRepsText(reps: Int): String {
 @Composable
 fun ExerciseScreen(onBack: () -> Unit) {
     val viewModel: ExerciseViewModel = viewModel()
-    val exercise = viewModel.getCurrentExercise()
-    val isLocked = viewModel.isTodayCompleted()
+    val day = remember { viewModel.calculateCurrentDay() }
+    val exercise = remember(day) { viewModel.getExerciseForDay(day) }
     var reps by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
-    val isDone = viewModel.isTodayCompleted()
+    val isDone = viewModel.isNextDayLocked()
     var isError by remember { mutableStateOf(false) }
     val minReps = exercise.minReps ?: 0
-    val day = viewModel.getCurrentDay()
+    val repsInt = reps.toIntOrNull()
     val refresh = viewModel.completedDays
 
 
@@ -446,7 +445,7 @@ fun ExerciseScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (exercise.durationSeconds != null)
-                {Text(text = "Czas: ${exercise.minReps} sekund")}
+                {Text(text = "Czas: ${exercise.durationSeconds} sekund")}
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -479,14 +478,18 @@ fun ExerciseScreen(onBack: () -> Unit) {
 
         Button(
             onClick = { viewModel.markDayCompleted() },
-            enabled = !isDone && reps.isNotBlank() && !isError && reps.toIntOrNull() != null && reps.toInt() >= minReps
+            enabled = !isDone &&
+                    repsInt != null &&
+                    repsInt >= minReps &&
+                    !isError
         ) {
-            Text(if (isLocked) "Zrobione ✔" else "ZROBIONE")
+            Text(if (isDone) "Zrobione ✔" else "ZROBIONE")
         }
-        if (isLocked) {
+
+        if (isDone) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "To był Twój dzień ${viewModel.getCurrentDay()} 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
+                text = "To był Twój dzień ${viewModel.lastCompletedDay} 👏\nŚwietna robota! Wróć jutro po kolejne ćwiczenie 💛"
             )
         }
 

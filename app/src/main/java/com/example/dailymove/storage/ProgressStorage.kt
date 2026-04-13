@@ -33,11 +33,12 @@ class ProgressStorage(context: Context) {
     fun getLastOpenDay(): Int {
         return prefs.getInt("last_open_day", -1)
     }
-    fun saveStartDate(date: String) {
-        prefs.edit().putString("start_date", date).apply()
+
+    fun saveLastCompletedDate(date: String) {
+        prefs.edit().putString("last_completed_date", date).apply()
     }
 
-    fun getStartDate(): String? {
-        return prefs.getString("start_date", null)
+    fun getLastCompletedDate(): String? {
+        return prefs.getString("last_completed_date", null)
     }
 }
